@@ -20,3 +20,11 @@ router.get('/:id', (req, res) => {
     })
 })
 
+router.post('/', (req,res) => {
+    console.log("Adding " + req.body.name + " to the db")
+    connectionPool.query('INSERT INTO flies (user_id, name) SELECT id, $1 from users;', [req.body.name], (err, results) => {
+        if (err)
+            throw err
+        res.status(200).json(req.body)
+    })
+})
