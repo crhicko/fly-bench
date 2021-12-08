@@ -50,7 +50,7 @@ app.post('/login', (req, res, next) => {
     else {
       req.logIn(user, (err) => {
         if (err) throw err
-        res.send('Successfully Authed')
+        res.send({message: 'Successfully Authed'})
         console.log(req.user)
       })
     }
