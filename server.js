@@ -13,7 +13,10 @@ const app = express()
 const port = 4000
 
 app.use(cors(
-  {credentials: true}
+  {
+    origin: 'http://localhost:3000',
+    credentials: true
+  }
 ))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
@@ -25,6 +28,9 @@ app.use(session({     //documentation
 }));
 
 app.use(cookieParser("secretcode"))
+app.use(passport.initialize())
+app.use(passport.session())
+require('./passportConfig')(passport)
 
 
 
@@ -36,7 +42,19 @@ app.get('/', (req, res) => {
     res.send("wilkommen");
 })
 
-app.post('/login', (req,res) => {
+app.post('/login', (req, res, next) => {
+  console.log("received login requiest")
+  passport.authenticate("local", (err, user, info) => {
+    if(err) throw err
+    if (!user) res.send(info)
+    else {
+      req.logIn(user, (err) => {
+        if (err) throw err
+        res.send('Successfully Authed')
+        console.log(req.user)
+      })
+    }
+  })(req,res,next)
 });
 
 //TODO: Sanitize
