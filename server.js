@@ -20,17 +20,19 @@ app.use(cors(
 ))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
-
+app.use(cookieParser())
 app.use(session({     //documentation
   secret: "secretcode",
   resave: true,
   saveUninitialized: true
 }));
 
-app.use(cookieParser("secretcode"))
+require('./passportConfig')(passport)
+
+
 app.use(passport.initialize())
 app.use(passport.session())
-require('./passportConfig')(passport)
+
 
 
 
@@ -71,7 +73,8 @@ app.post('/register', (req,res) => {
 });
 
 app.get('/user', (req,res) => {
-  console.log(req.body)
+  console.log(req.user)
+  res.send(req.user)
 });
 
 

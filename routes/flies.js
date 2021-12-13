@@ -28,3 +28,19 @@ router.post('/', (req,res) => {
         res.status(200).json(req.body)
     })
 })
+
+router.post('/:id/favorite', (req, res) => {
+    if (req.user) {
+        if(req.body.set_favorite)
+            connectionPool.query('INSERT INTO favorites (user_id, fly_id) VALUES($1, $2)', [req.user.id, req.body.fly_id], (err, results) => {
+                if (err) throw err
+                res.status(200).json(req.body)
+            })
+        else
+            connectionPool.query('DELETE FROM favorites WHERE user_id=$1 and fly_id=$2', [req.user.id, req.body.fly_id], (err, results) => {
+            if (err) throw err
+            res.status(200).json(req.body)
+        })
+    }
+
+})

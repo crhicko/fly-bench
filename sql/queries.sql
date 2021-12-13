@@ -19,3 +19,9 @@ CREATE TABLE flies(
 CREATE TABLE
 
 INSERT INTO flies (user_id, name) SELECT id, 'Pheasant Tail' from users;
+
+CREATE TABLE favorites(
+	id SERIAL UNIQUE NOT NULL,
+	user_id uuid references users(id),
+	fly_id integer references flies(id)
+)

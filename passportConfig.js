@@ -24,9 +24,11 @@ const PassportConfig = (passport) => {
     )
 
     passport.serializeUser((user, done) => {
+        console.log("Serializing " + user.id)
         done(null, user.id)
     })
     passport.deserializeUser((id ,done) => {
+        console.log("Deserializing")
         connectionPool.query('SELECT * from users WHERE id=$1', [id], (err, queryResult) => {
             done(err, queryResult.rows[0])
         })
