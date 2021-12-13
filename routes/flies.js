@@ -5,11 +5,22 @@ const router = express.Router()
 module.exports = router
 
 router.get('/', (req, res) => {
-    connectionPool.query('SELECT * FROM flies', (err, results) => {
-        if (err)
-            throw err
-        res.status(200).json(results.rows)
-    })
+    if(req.user) {
+        console.log("Looking for user flies xd")
+        connectionPool.query('SELECT FLIES.*, favorites.fly_id from FLIES LEFT JOIN favorites ON FLIES.id=favorites.fly_id AND favorites.user_id=$1 LIMIT 10', [req.user.id], (err, results) => {
+            if (err)
+                throw err
+            res.status(200).json(results.rows)
+        })
+    }
+    else {
+        console.log("Looking for all flies")
+        connectionPool.query('SELECT * FROM flies LIMIT 10', (err, results) => {
+            if (err)
+                throw err
+            res.status(200).json(results.rows)
+        })
+    }
 })
 
 router.get('/:id', (req, res) => {
