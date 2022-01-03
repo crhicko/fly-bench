@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser')
 const bcrypt = require('bcrypt')
 const session = require('express-session')
 const connectionPool = require('./util/dbConnector')
+const setUserAuthCookie = require('./util/setUserAuthCookie')
 
 const app = express()
 const port = 4000
@@ -23,8 +24,8 @@ app.use(bodyParser.urlencoded({extended: true}))
 app.use(cookieParser())
 app.use(session({     //documentation
   secret: "secretcode",
-  resave: true,
-  saveUninitialized: true
+  resave: false,
+  saveUninitialized: false
 }));
 
 require('./passportConfig')(passport)
@@ -32,7 +33,6 @@ require('./passportConfig')(passport)
 
 app.use(passport.initialize())
 app.use(passport.session())
-
 
 
 
@@ -45,15 +45,15 @@ app.get('/', (req, res) => {
 })
 
 app.post('/login', (req, res, next) => {
-  console.log("received login requiest")
+  console.log("received login request")
   passport.authenticate("local", (err, user, info) => {
+    console.log(info)
     if(err) throw err
-    if (!user) res.send(info)
+    if (!user) res.status(401).send(info)
     else {
       req.logIn(user, (err) => {
         if (err) throw err
-        res.send({message: 'Successfully Authed'})
-        console.log(req.user)
+        res.cookie('auth_status', true, { maxAge: 2592000000 }).send({message: 'Successfully Authed'})
       })
     }
   })(req,res,next)
@@ -71,6 +71,12 @@ app.post('/register', (req,res) => {
   })
 
 });
+
+app.post('/logout', (req, res) => {
+  console.log('received logout request')
+  req.logOut()
+  res.clearCookie('auth_status').redirect('/')
+})
 
 app.get('/user', (req,res) => {
   console.log(req.user)

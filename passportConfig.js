@@ -7,7 +7,7 @@ const PassportConfig = (passport) => {
         new localStrategy((username, password, done) => {
             console.log(username)
             connectionPool.query('SELECT * from users WHERE username=$1', [username], (err, queryResult) => {
-                console.log(queryResult)
+                // console.log(queryResult)
                 if (err)
                     throw err
                 if (!queryResult.rows[0]) return done(null, false, {message: "No User Found"})
