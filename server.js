@@ -72,15 +72,15 @@ app.post('/register', (req,res) => {
 
 });
 
-app.post('/logout', (req, res) => {
+app.get('/logout', (req, res) => {
   console.log('received logout request')
   req.logOut()
-  res.clearCookie('auth_status').redirect('/')
+  res.redirect('/')
 })
 
 app.get('/user', (req,res) => {
   console.log(req.user)
-  res.send(req.user)
+  res.send({user: req.user, is_auth: req.isAuthenticated()})
 });
 
 

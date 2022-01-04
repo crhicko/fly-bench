@@ -7,7 +7,7 @@ module.exports = router
 router.get('/', (req, res) => {
     if(req.user) {
         console.log("Looking for user flies xd")
-        connectionPool.query('SELECT FLIES.*, favorites.fly_id from FLIES LEFT JOIN favorites ON FLIES.id=favorites.fly_id AND favorites.user_id=$1 LIMIT 10', [req.user.id], (err, results) => {
+        connectionPool.query('SELECT FLIES.*, favorites.fly_id from FLIES LEFT JOIN favorites ON FLIES.id=favorites.fly_id AND favorites.user_id=$1 ORDER BY id ASC LIMIT 5', [req.user.id], (err, results) => {
             if (err)
                 throw err
             res.status(200).json(results.rows)
@@ -24,11 +24,20 @@ router.get('/', (req, res) => {
 })
 
 router.get('/:id', (req, res) => {
-    connectionPool.query('SELECT * FROM flies WHERE id=$1', [req.params.id], (err, results) => {
+    if (!req.user)
+        connectionPool.query('SELECT * FROM flies WHERE id=$1', [req.params.id], (err, results) => {
+            if (err)
+                throw err
+            res.status(200).json(results.rows[0])
+        })
+    else{
+        console.log(typeof req.user.id)
+    connectionPool.query('SELECT *, CASE WHEN EXISTS (SELECT id FROM favorites WHERE user_id=$1 and fly_id=$2) THEN TRUE ELSE FALSE END AS is_favorite FROM flies WHERE id=$2', [req.user.id, req.params.id], (err, results) => {
         if (err)
             throw err
         res.status(200).json(results.rows[0])
     })
+    }
 })
 
 router.post('/', (req,res) => {
