@@ -7,7 +7,8 @@ module.exports = router
 router.get('/', (req, res) => {
     if(req.user) {
         console.log("Looking for user flies xd")
-        connectionPool.query('SELECT FLIES.*, favorites.fly_id from FLIES LEFT JOIN favorites ON FLIES.id=favorites.fly_id AND favorites.user_id=$1 ORDER BY id ASC LIMIT 5', [req.user.id], (err, results) => {
+        connectionPool.query('SELECT f.*, CASE WHEN EXISTS (SELECT fly_id FROM favorites WHERE user_id=$1 and fly_id=f.id) THEN TRUE ELSE FALSE END AS is_favorite FROM flies f ORDER BY id ASC LIMIT 5', [req.user.id], (err, results) => {
+        // connectionPool.query('SELECT FLIES.*, favorites.fly_id from FLIES LEFT JOIN favorites ON FLIES.id=favorites.fly_id AND favorites.user_id=$1 ORDER BY id ASC LIMIT 5', [req.user.id], (err, results) => {
             if (err)
                 throw err
             res.status(200).json(results.rows)
@@ -49,17 +50,18 @@ router.post('/', (req,res) => {
     })
 })
 
-router.post('/:id/favorite', (req, res) => {
+router.post('/:id/favorite', (req, res, next) => {
+    console.log(req.body)
     if (req.user) {
         if(req.body.set_favorite)
-            connectionPool.query('INSERT INTO favorites (user_id, fly_id) VALUES($1, $2)', [req.user.id, req.body.fly_id], (err, results) => {
-                if (err) throw err
-                res.status(200).json(req.body)
+            connectionPool.query('INSERT INTO favorites (user_id, fly_id) VALUES($1, $2)', [req.user.id, req.params.id], (err, results) => {
+                if (err) next(err)
+                else res.status(200).json({message: 'Fly Favorited'})
             })
         else
-            connectionPool.query('DELETE FROM favorites WHERE user_id=$1 and fly_id=$2', [req.user.id, req.body.fly_id], (err, results) => {
-            if (err) throw err
-            res.status(200).json(req.body)
+            connectionPool.query('DELETE FROM favorites WHERE user_id=$1 and fly_id=$2', [req.user.id, req.params.id], (err, results) => {
+            if (err) next(err)
+            else res.status(200).json({message: 'Fly Unfavorited'})
         })
     }
 

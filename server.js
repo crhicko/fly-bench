@@ -86,3 +86,7 @@ app.get('/user', (req,res) => {
 
 
 app.use('/flies', require('./routes/flies'))
+app.use(function (err, req, res, next) {
+  console.error(err.stack)
+  res.status(500).send({message: 'Something broke!'})
+})
