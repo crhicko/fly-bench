@@ -53,7 +53,7 @@ app.post('/login', (req, res, next) => {
     else {
       req.logIn(user, (err) => {
         if (err) throw err
-        res.cookie('auth_status', true, { maxAge: 2592000000 }).send({message: 'Successfully Authed'})
+        res.cookie('auth_status', true, { maxAge: 2592000000 }).send(JSON.stringify({id: user.id, username: user.username}))
       })
     }
   })(req,res,next)
