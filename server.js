@@ -66,7 +66,7 @@ app.post('/register', (req,res) => {
     connectionPool.query('INSERT INTO users (username, passhash, email) VALUES($1,$2,$3)', [req.body.username, hash, req.body.email], (err, results) => {
       if (err)
         throw err
-      res.status(200).json(req.body)
+      res.status(200).send({message: 'Account Created'})
     })
   })
 
