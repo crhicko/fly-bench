@@ -13,6 +13,7 @@ const setUserAuthCookie = require('./util/setUserAuthCookie')
 const app = express()
 const port = 4000
 
+console.log(process.env.UI_URL)
 app.use(cors(
   {
     origin: process.env.UI_URL,
