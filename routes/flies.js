@@ -25,6 +25,8 @@ router.get('/', (req, res) => {
 })
 
 router.get('/:id', (req, res) => {
+    console.log(req.params.id)
+    console.log(typeof req.params.id)
     if (!req.user)
         connectionPool.query('SELECT * FROM flies WHERE id=$1', [req.params.id], (err, results) => {
             if (err)
