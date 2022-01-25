@@ -69,6 +69,23 @@ app.get('/test', (req, res) => {
     });
 })
 
+app.post('/add-fly', (req, res) => {
+  if(!req.user) {
+    // res.status(401).send({message: 'User must be authenticated'})
+    // return;
+  }
+  console.log('Adding a fly to the db from user ' + req.user)
+  // 'INSERT into flies) VALUES() RETURNING(id)'
+  connectionPool.query('INSERT into flies(name, description) VALUES($1,$2) RETURNING(id)', [req.body.name, req.body.description], (err, results) => {
+    if (err)
+      throw err
+    else
+      console.log(results.rows[0])
+      res.status(200).send(results.rows[0])
+  })
+
+})
+
 app.post('/login', (req, res, next) => {
   console.log("received login request")
   passport.authenticate("local", (err, user, info) => {
