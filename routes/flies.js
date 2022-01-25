@@ -9,8 +9,8 @@ const fly_and_tag_and_favorites_query = "Select flies.*, CASE WHEN EXISTS (SELEC
 
 router.get('/', (req, res) => {
     if(req.user) {
-        console.log("Looking for user flies xd")
-        connectionPool.query(fly_and_tag_and_favorites_query + ' LIMIT 5', [req.user.id], (err, results) => {
+        console.log("Looking for user favorited flies xd")
+        connectionPool.query(fly_and_tag_and_favorites_query, [req.user.id], (err, results) => {
         // connectionPool.query('SELECT FLIES.*, favorites.fly_id from FLIES LEFT JOIN favorites ON FLIES.id=favorites.fly_id AND favorites.user_id=$1 ORDER BY id ASC LIMIT 5', [req.user.id], (err, results) => {
             if (err)
                 throw err

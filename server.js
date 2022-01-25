@@ -71,12 +71,12 @@ app.get('/test', (req, res) => {
 
 app.post('/add-fly', (req, res) => {
   if(!req.user) {
-    // res.status(401).send({message: 'User must be authenticated'})
-    // return;
+    res.status(401).send({message: 'User must be authenticated'})
+    return;
   }
-  console.log('Adding a fly to the db from user ' + req.user)
-  // 'INSERT into flies) VALUES() RETURNING(id)'
-  connectionPool.query('INSERT into flies(name, description) VALUES($1,$2) RETURNING(id)', [req.body.name, req.body.description], (err, results) => {
+  // console.log('Adding a fly to the db from user ' + req.user)
+  // console.log(req.user)
+  connectionPool.query('INSERT into flies(name, description, user_id) VALUES($1,$2,$3) RETURNING(id)', [req.body.name, req.body.description, req.user.id], (err, results) => {
     if (err)
       throw err
     else
