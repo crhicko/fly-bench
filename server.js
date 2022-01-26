@@ -35,7 +35,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(cookieParser())
 app.use(session({     //documentation
-  secret: "secretcode",
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false
 }));
