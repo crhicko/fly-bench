@@ -25,3 +25,6 @@ CREATE TABLE favorites(
 	user_id uuid references users(id),
 	fly_id integer references flies(id)
 )
+
+Select flies.*, a.tag_list from flies LEFT JOIN (SELECT fly_tags.fly_id as fly_id, string_agg(tags.title, ',' order by tags.title) as tag_list from fly_tags LEFT JOIN tags ON fly_tags.tag_id=tags.id GROUP BY fly_tags.fly_id) a ON flies.id=a.fly_id
+Select flies.*, CASE WHEN EXISTS (SELECT fly_id FROM favorites WHERE user_id=$1 and fly_id=flies.id) THEN TRUE ELSE FALSE END AS is_favorite, a.tag_list from flies LEFT JOIN (SELECT fly_tags.fly_id as fly_id, string_agg(tags.title, ',' order by tags.title) as tag_list from fly_tags LEFT JOIN tags ON fly_tags.tag_id=tags.id GROUP BY fly_tags.fly_id) a ON flies.id=a.fly_id

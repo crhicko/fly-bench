@@ -3,12 +3,10 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 require('dotenv').config()
 const passport = require('passport')
-const passportLocalStrategy = require('passport-local').Strategy
 const cookieParser = require('cookie-parser')
 const bcrypt = require('bcrypt')
 const session = require('express-session')
-const connectionPool = require('./util/dbConnector')
-const setUserAuthCookie = require('./util/setUserAuthCookie')
+const knex=require('./util/dbConnector')
 const S3 = require('aws-sdk/clients/s3')
 
 const app = express()
@@ -44,10 +42,8 @@ app.use(session({     //documentation
 
 require('./passportConfig')(passport)
 
-
 app.use(passport.initialize())
 app.use(passport.session())
-
 
 
 app.listen(port, () => {
@@ -58,7 +54,7 @@ app.get('/', (req, res) => {
     res.send("wilkommen");
 })
 
-app.get('/test', (req, res) => {
+app.get('/test', async (req, res) => {
     s3.getObject({Bucket: process.env.AWS_BUCKET, Key: 'img/admin/3x.png'}, (err, data) => {
       if (err) console.log(err, err.stack); // an error occurred
       else     console.log(data);           // successful response
@@ -67,23 +63,6 @@ app.get('/test', (req, res) => {
       if (err) console.log(err, err.stack);
       else console.log(data);
     });
-})
-
-app.post('/add-fly', (req, res) => {
-  if(!req.user) {
-    res.status(401).send({message: 'User must be authenticated'})
-    return;
-  }
-  // console.log('Adding a fly to the db from user ' + req.user)
-  // console.log(req.user)
-  connectionPool.query('INSERT into flies(name, description, user_id) VALUES($1,$2,$3) RETURNING(id)', [req.body.name, req.body.description, req.user.id], (err, results) => {
-    if (err)
-      throw err
-    else
-      console.log(results.rows[0])
-      res.status(200).send(results.rows[0])
-  })
-
 })
 
 app.post('/login', (req, res, next) => {
@@ -103,13 +82,14 @@ app.post('/login', (req, res, next) => {
 
 //TODO: Sanitize
 app.post('/register', (req,res) => {
-  bcrypt.hash(req.body.password, 10, (err, hash) => {
+  bcrypt.hash(req.body.password, 10, async (err, hash) => {
     console.log(hash)
-    connectionPool.query('INSERT INTO users (username, passhash, email) VALUES($1,$2,$3)', [req.body.username, hash, req.body.email], (err, results) => {
-      if (err)
-        throw err
-      res.status(200).send({message: 'Account Created'})
-    })
+    try {
+      const result = await knex('users').insert({username: req.body.username, passhash: hash, email: req.body.email}).returning('id')
+      res.status(200).send({id: result[0].id})
+    } catch(err) {
+
+    }
   })
 
 });
@@ -117,7 +97,7 @@ app.post('/register', (req,res) => {
 app.get('/logout', (req, res) => {
   console.log('received logout request')
   req.logOut()
-  res.redirect('/')
+  console.log('loggedout')
 })
 
 app.get('/user', (req,res) => {
@@ -125,9 +105,8 @@ app.get('/user', (req,res) => {
   res.send({user: req.user, is_auth: req.isAuthenticated()})
 });
 
-
-
 app.use('/flies', require('./routes/flies'))
+
 app.use(function (err, req, res, next) {
   console.error(err.stack)
   res.status(500).send({message: 'Something broke!'})

@@ -1,25 +1,25 @@
 const bcrypt = require('bcrypt')
 const localStrategy =  require('passport-local').Strategy
-const connectionPool = require('./util/dbConnector')
+const knex = require('./util/dbConnector')
 
 const PassportConfig = (passport) => {
     passport.use(
-        new localStrategy((username, password, done) => {
+        new localStrategy(async (username, password, done) => {
             console.log(username)
-            connectionPool.query('SELECT * from users WHERE username=$1', [username], (err, queryResult) => {
-                // console.log(queryResult)
-                if (err)
-                    throw err
-                if (!queryResult.rows[0]) return done(null, false, {message: "No User Found"})
-                bcrypt.compare(password, queryResult.rows[0].passhash, (err, result) => {
-                    if (err)
-                        throw err
-                    if (result === true) {
-                        return done(null, queryResult.rows[0])
+            try {
+                const result = await knex('users').where('username', username).select('*')
+                console.log(result.length)
+                if(result.length == 0) return done(none, false, {message: "No User Found"})
+                bcrypt.compare(password, result[0].passhash, (err, r) => {
+                    if (r === true) {
+                        return done(null, result[0])
                     }
                     else return done(null, false, {message: "Incorrect Password"})
                 })
-            })
+            } catch(err) {
+                console.log("ERROR")
+                throw err
+            }
         })
     )
 
@@ -27,11 +27,15 @@ const PassportConfig = (passport) => {
         console.log("Serializing " + user.id)
         done(null, user.id)
     })
-    passport.deserializeUser((id ,done) => {
+    passport.deserializeUser(async (id ,done) => {
         console.log("Deserializing")
-        connectionPool.query('SELECT * from users WHERE id=$1', [id], (err, queryResult) => {
-            done(err, queryResult.rows[0])
-        })
+
+        try {
+            const result = await knex('users').where('id', id).select('*')
+            done(null, result[0])
+        } catch(error) {
+            throw error
+        }
     })
 }
 
