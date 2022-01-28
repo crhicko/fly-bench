@@ -2,6 +2,10 @@ const knex = require('../util/dbConnector')
 const express = require('express')
 const router = express.Router()
 const checkLoggedIn = require('../util/loggedIn')
+const multer = require('multer')
+const upload = multer({dest: 'images/'})
+const s3 = require('../util/S3Connector')
+const fs = require('fs')
 
 module.exports = router
 
@@ -44,15 +48,29 @@ router.get('/:id', async (req, res, next) => {
     }
 })
 
-router.post('/', checkLoggedIn, async (req, res) => {
+router.post('/', checkLoggedIn, upload.single('image'), async (req, res) => {
     console.log('Adding a fly to the db from user ' + req.user.username)
+    let id;
     try {
+        //get id in db first for s3 post
         const result = await knex('flies').insert({ name: req.body.name, description: req.body.description, user_id: req.user.id }).returning('id')
-        res.status(200).send(result[0])
+        id = result[0].id
+        const key = 'img/' + req.user.id + '/' + id + '/preview.png'
+
+        //S3 usually has AWS.Response type as a return instead of promise, so the .promise() is required
+        await s3.putObject({Body: fs.readFileSync(req.file.path), Bucket: process.env.AWS_BUCKET, Key: key}).promise()
+        await knex('flies').where({id: id}).update({ image_url: key})
+
+        res.status(200).send({id: id})
     } catch (err) {
         console.error(err)
         res.status(500).send({ message: 'Unable to persist object' })
+        await knex('flies').where({id: id}).del()
+
     }
+    //may wanna change the image upload later to use direct signed upload from amazon
+    console.log('Deleting uploaded image file from local')
+    fs.unlink(req.file.path, (err) => {console.error(err)})
 })
 
 router.post('/:id/favorite', checkLoggedIn, async (req, res, next) => {
