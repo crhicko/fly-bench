@@ -1,26 +1,18 @@
 const express = require('express')
 const cors = require('cors')
-const bodyParser = require('body-parser')
 require('dotenv').config()
 const passport = require('passport')
 const cookieParser = require('cookie-parser')
 const bcrypt = require('bcrypt')
 const session = require('express-session')
 const knex=require('./util/dbConnector')
-const S3 = require('aws-sdk/clients/s3')
+const s3 = require('./util/S3Connector')
 
 const app = express()
 const port = 4000
 
 //S3 Setup
-const s3 = new S3({
-  apiVersion: '2006-03-01',
-  region: 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET
-  }
-});
+
 
 console.log("Region: ", s3.config.region);
 
@@ -31,8 +23,8 @@ app.use(cors(
     credentials: true
   }
 ))
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(express.json({limit: '5kb'}))
+app.use(express.urlencoded({extended: true, limit: '5kb'}))
 app.use(cookieParser())
 app.use(session({     //documentation
   secret: process.env.SESSION_SECRET,
