@@ -98,6 +98,7 @@ app.get('/user', (req,res) => {
 });
 
 app.use('/flies', require('./routes/flies'))
+app.use('/tags', require('./routes/tags'))
 
 app.use(function (err, req, res, next) {
   console.error(err.stack)
