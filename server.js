@@ -89,6 +89,7 @@ app.post('/register', (req,res) => {
 app.get('/logout', (req, res) => {
   console.log('received logout request')
   req.logOut()
+  res.status(200).send()
   console.log('loggedout')
 })
 
