@@ -39,7 +39,7 @@ router.get('/:id', async (req, res, next) => {
     }
     else {
         try {
-            const result = await knex('flies').where('id', req.params.id).select('*')
+            const result = await knex('flies').leftJoin(agg_fly_tags_query, 'flies.id', '=', 'tag_list_query.fly_id').select('tag_list_query.tag_list').where('id', req.params.id).select('*')
             res.status(200).send(result[0])
         } catch (error) {
             console.error(error)
