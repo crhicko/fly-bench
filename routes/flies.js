@@ -78,10 +78,15 @@ router.post('/', checkLoggedIn, upload.single('image'), async (req, res) => {
     } catch (err) {
         console.error(err)
         res.status(500).send({ message: 'Unable to persist object' })
-        await knex('flies').where({id: id}).del()
-        await knex('fly_tags').where({fly_id: id}).del()
+        try {
+            await knex('flies').where({id: id}).del()
+            await knex('fly_tags').where({fly_id: id}).del()
+        }
+        catch (err) {
+            console.error(err)
+        }
     }
-    console.log('Deleting uploaded image file from local')
+    console.log('Deleting uploaded image file from local with path ' + req.file.path)
     fs.unlink(req.file.path, (err) => {console.error(err)})
 })
 
