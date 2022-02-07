@@ -64,7 +64,7 @@ router.post('/', checkLoggedIn, upload.single('image'), async (req, res) => {
     let id;
     try {
         //get id in db first for s3 post
-        const result = await knex('flies').insert({ name: req.body.name, description: req.body.description, user_id: req.user.id }).returning('id')
+        const result = await knex('flies').insert({ name: req.body.name, description: req.body.description, user_id: req.user.id, variant_of: req.body.variant.length==0 ? null : parseInt(req.body.variant)}).returning('id')
         id = result[0].id
         const key = 'img/' + req.user.id + '/' + id + '/preview.png'
 
