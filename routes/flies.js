@@ -15,7 +15,14 @@ const agg_fly_tags_query = knex('fly_tags').join('tags', 'fly_tags.tag_id', '=',
 router.get('/', async (req, res) => {
     if (req.query?.search) {
         console.log("Getting search results")
-        res.status(200).send()
+        try {
+             results = await knex('flies').whereILike('name', `%${req.query.search}%`)
+             res.status(200).send(results)
+        }
+        catch {
+            console.error(error)
+            res.status(500).send({ message: 'Could not retrieve object' })
+        }
     }
     else if (req.user) {
         console.log("get all flies including favorite status")
