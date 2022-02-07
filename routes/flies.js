@@ -13,7 +13,11 @@ const agg_fly_tags_query = knex('fly_tags').join('tags', 'fly_tags.tag_id', '=',
 
 
 router.get('/', async (req, res) => {
-    if (req.user) {
+    if (req.query?.search) {
+        console.log("Getting search results")
+        res.status(200).send()
+    }
+    else if (req.user) {
         console.log("get all flies including favorite status")
         const get_fly_favorite = knex.raw('CASE WHEN EXISTS (SELECT fly_id FROM favorites WHERE user_id=:user_id and fly_id=flies.id) THEN TRUE ELSE FALSE END AS is_favorite', { user_id: req.user.id })
         const results = await knex('flies').leftJoin(agg_fly_tags_query, 'flies.id', '=', 'tag_list_query.fly_id').leftJoin('users', 'users.id', '=', 'flies.user_id').select('flies.*', 'tag_list_query.tag_list', get_fly_favorite, 'username')
