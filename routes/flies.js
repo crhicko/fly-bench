@@ -6,6 +6,7 @@ const multer = require('multer')
 const upload = multer({dest: 'images/'})
 const s3 = require('../util/S3Connector')
 const fs = require('fs')
+const checkFlyOwner = require('../util/checkFlyOwner')
 
 module.exports = router
 
@@ -56,6 +57,20 @@ router.get('/:id', async (req, res, next) => {
             console.error(error)
             res.status(500).send({ message: 'Could not retrieve object' })
         }
+    }
+})
+
+router.delete('/:id', checkFlyOwner, async (req, res, next) => {
+    console.log('Attempting to delete fly')
+    try {
+        const folder = 'img/' + req.user.id + '/' + req.params.id + '/'
+        const result = await knex('flies').where('id', req.params.id).del()
+        const imageResults = await s3.listObjectsV2({Bucket: process.env.AWS_BUCKET, Prefix: folder}).promise()
+        await s3.deleteObjects({Bucket: process.env.AWS_BUCKET, Delete: { Objects: imageResults.Contents.map(e => ({Key: e.Key}))}}).promise()
+        // console.log(t)
+    } catch (error) {
+        console.error(error)
+        res.status(500).send({ message: 'Error occurred during delete' })
     }
 })
 
