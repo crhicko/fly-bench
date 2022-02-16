@@ -9,7 +9,7 @@ const PassportConfig = (passport) => {
             try {
                 const result = await knex('users').where('username', username).select('*')
                 console.log(result.length)
-                if(result.length == 0) return done(none, false, {message: "No User Found"})
+                if(result.length == 0) return done(null, false, {message: "No User Found"})
                 bcrypt.compare(password, result[0].passhash, (err, r) => {
                     if (r === true) {
                         return done(null, result[0])
