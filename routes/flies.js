@@ -67,6 +67,7 @@ router.delete('/:id', checkFlyOwner, async (req, res, next) => {
         const result = await knex('flies').where('id', req.params.id).del()
         const imageResults = await s3.listObjectsV2({Bucket: process.env.AWS_BUCKET, Prefix: folder}).promise()
         await s3.deleteObjects({Bucket: process.env.AWS_BUCKET, Delete: { Objects: imageResults.Contents.map(e => ({Key: e.Key}))}}).promise()
+        res.send({message: 'Object Deleted from DB'})
         // console.log(t)
     } catch (error) {
         console.error(error)
