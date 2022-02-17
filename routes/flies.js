@@ -87,8 +87,8 @@ router.post('/', checkLoggedIn, upload.single('image'), async (req, res) => {
         //S3 usually has AWS.Response type as a return instead of promise, so the .promise() is required
         await s3.putObject({Body: fs.readFileSync(req.file.path), Bucket: process.env.AWS_BUCKET, Key: key}).promise()
         await knex('flies').where({id: id}).update({ image_url: `https://${process.env.AWS_BUCKET}.s3.amazonaws.com/${key}`})
-        console.log([req.body.tags].flat().map(t_id => {return {tag_id: parseInt(t_id), fly_id: id}}))
-        await knex('fly_tags').insert([req.body.tags].flat().map(t_id => {return {tag_id: parseInt(t_id), fly_id: id}}))
+        if(req.body.tags)
+            await knex('fly_tags').insert([req.body.tags].flat().map(t_id => {return {tag_id: parseInt(t_id), fly_id: id}}))
 
         res.status(200).send({id: id})
     } catch (err) {
