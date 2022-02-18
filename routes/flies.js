@@ -42,7 +42,8 @@ router.get('/:id', async (req, res, next) => {
     console.log("Getting specific fly " + req.params.id)
     if (req.user) {
         try {
-            const result = await knex('flies').where('id', req.params.id).select('*', knex.raw('CASE WHEN EXISTS (SELECT fly_id FROM favorites WHERE user_id=:user_id and fly_id=flies.id) THEN TRUE ELSE FALSE END AS is_favorite', { user_id: req.user.id }))
+            const get_fly_favorite = knex.raw('CASE WHEN EXISTS (SELECT fly_id FROM favorites WHERE user_id=:user_id and fly_id=flies.id) THEN TRUE ELSE FALSE END AS is_favorite', { user_id: req.user.id })
+            const result = await knex('flies').leftJoin(agg_fly_tags_query, 'flies.id', '=', 'tag_list_query.fly_id').leftJoin('users', 'users.id', '=', 'flies.user_id').select('flies.*', 'tag_list_query.tag_list', get_fly_favorite, 'username')
             res.status(200).send(result[0])
         } catch (error) {
             console.error(error)
