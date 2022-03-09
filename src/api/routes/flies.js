@@ -1,12 +1,12 @@
 const knex = require('../util/dbConnector')
 const express = require('express')
 const router = express.Router()
-const checkLoggedIn = require('../util/loggedIn')
+const checkLoggedIn = require('../middleware/loggedIn')
 const multer = require('multer')
 const upload = multer({dest: 'images/'})
 const s3 = require('../util/S3Connector')
 const fs = require('fs')
-const checkFlyOwner = require('../util/checkFlyOwner')
+const checkFlyOwner = require('../middleware/checkFlyOwner')
 
 module.exports = router
 

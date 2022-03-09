@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt')
 const localStrategy =  require('passport-local').Strategy
-const knex = require('./util/dbConnector')
+const knex = require('../api/util/dbConnector')
 
 const PassportConfig = (passport) => {
     passport.use(

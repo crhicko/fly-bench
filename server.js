@@ -5,8 +5,8 @@ const passport = require('passport')
 const cookieParser = require('cookie-parser')
 const bcrypt = require('bcrypt')
 const session = require('express-session')
-const knex=require('./util/dbConnector')
-const s3 = require('./util/S3Connector')
+const knex=require('./src/api/util/dbConnector')
+const s3 = require('./src/api/util/S3Connector')
 
 const app = express()
 const port = 4000
@@ -32,7 +32,7 @@ app.use(session({     //documentation
   saveUninitialized: false
 }));
 
-require('./passportConfig')(passport)
+require('./src/config/passportConfig')(passport)
 
 app.use(passport.initialize())
 app.use(passport.session())
@@ -98,8 +98,8 @@ app.get('/user', (req,res) => {
   res.send({user: req.user, is_auth: req.isAuthenticated()})
 });
 
-app.use('/flies', require('./routes/flies'))
-app.use('/tags', require('./routes/tags'))
+app.use('/flies', require('./src/api/routes/flies'))
+app.use('/tags', require('./src/api/routes/tags'))
 
 app.use(function (err, req, res, next) {
   console.error(err.stack)
