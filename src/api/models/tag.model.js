@@ -2,10 +2,10 @@ const { Model } = require("objection")
 
 class TagModel extends Model {
     static get tableName() {
-        return 'tag';
+        return 'tags';
     }
 
-    static get relationMapping() {
+    static get relationMappings() {
         const Fly = require('./fly.model')
 
         return {
@@ -13,7 +13,7 @@ class TagModel extends Model {
                 relation: Model.ManyToManyRelation,
                 modelClass: Fly,
                 join: {
-                    from: 'tag.id',
+                    from: 'tags.id',
                     through: {
                         from: 'fly_tags.tag_id',
                         to: 'fly_tags.fly_id'
@@ -24,3 +24,5 @@ class TagModel extends Model {
         }
     }
 }
+
+module.exports = TagModel;

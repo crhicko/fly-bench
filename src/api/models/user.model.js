@@ -1,11 +1,11 @@
 const { Model } = require("objection")
 
-class FlyModel extends Model {
+class UserModel extends Model {
     static get tableName() {
         return 'users';
     }
 
-    static get relationMapping() {
+    static get relationMappings() {
         const Fly = require('./fly.model')
 
         return {
@@ -20,3 +20,5 @@ class FlyModel extends Model {
         }
     }
 }
+
+module.exports = UserModel;

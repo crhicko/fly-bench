@@ -21,7 +21,7 @@ class FlyModel extends Model {
         }
     }
 
-    static get relationMapping() {
+    static get relationMappings() {
         const Tag = require('./tag.model')
         const User = require('./user.model')
 
@@ -34,7 +34,7 @@ class FlyModel extends Model {
                     to: 'users.id'
                 }
             },
-            tag: {
+            tags: {
                 relation: Model.ManyToManyRelation,
                 modelClass: Tag,
                 join: {
@@ -53,8 +53,9 @@ class FlyModel extends Model {
                     from: 'flies.variant_of',
                     to: 'flies.id'
                 }
-
             }
         }
     }
 }
+
+module.exports = FlyModel;
