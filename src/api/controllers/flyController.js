@@ -1,36 +1,37 @@
 const knex = require('../util/dbConnector')
 const s3 = require('../util/S3Connector')
+const Fly = require('../models/fly.model')
+const {raw, fn} = require('objection')
 const fs = require('fs')
 
 const agg_fly_tags_query = knex('fly_tags').join('tags', 'fly_tags.tag_id', '=', 'tags.id').groupBy('fly_tags.fly_id').select({ fly_id: 'fly_tags.fly_id' }, knex.raw("string_agg(tags.title, ',' order by tags.title) as tag_list")).as('tag_list_query')
 
+
 const getFlyById = async (req, res, next) => {
     console.log("Getting specific fly " + req.params.id)
+
+    const queryBuilder = Fly.query()
+        .select('flies.*')
+        .where('flies.id', '=', req.params.id)
+        .modify('includeAggregateTags')
+
     if (req.user) {
-        try {
-            const get_fly_favorite = knex.raw('CASE WHEN EXISTS (SELECT fly_id FROM favorites WHERE user_id=:user_id and fly_id=flies.id) THEN TRUE ELSE FALSE END AS is_favorite', { user_id: req.user.id })
-            const result = await knex('flies').leftJoin(agg_fly_tags_query, 'flies.id', '=', 'tag_list_query.fly_id').leftJoin('users', 'users.id', '=', 'flies.user_id').select('flies.*', 'tag_list_query.tag_list', get_fly_favorite, 'username')
-            res.status(200).send(result[0])
-        } catch (error) {
-            console.error(error)
-            res.status(500).send({ message: 'Could not retrieve object' })
-        }
+        queryBuilder.modify('includeFavoriteStatus', req.user.id)
     }
-    else {
-        try {
-            const result = await knex('flies').leftJoin(agg_fly_tags_query, 'flies.id', '=', 'tag_list_query.fly_id').select('tag_list_query.tag_list').where('id', req.params.id).select('*')
-            res.status(200).send(result[0])
-        } catch (error) {
-            console.error(error)
-            res.status(500).send({ message: 'Could not retrieve object' })
-        }
+
+    try {
+        const result = await queryBuilder;
+        res.status(200).send(result[0])
+    } catch (error) {
+        console.error(error)
+        res.status(500).send({ message: 'Could not retrieve object' })
     }
 }
 
 const getFlies = async (req, res) => {
     if (req.query?.search) {
         console.log("Getting search results")
-        try {
+        try {   //THIS IS DOGWATER
              results = await knex('flies').whereILike('name', `%${req.query.search}%`)
              res.status(200).send(results)
         }
@@ -41,8 +42,16 @@ const getFlies = async (req, res) => {
     }
     else if (req.user) {
         console.log("get all flies including favorite status")
-        const get_fly_favorite = knex.raw('CASE WHEN EXISTS (SELECT fly_id FROM favorites WHERE user_id=:user_id and fly_id=flies.id) THEN TRUE ELSE FALSE END AS is_favorite', { user_id: req.user.id })
-        const results = await knex('flies').leftJoin(agg_fly_tags_query, 'flies.id', '=', 'tag_list_query.fly_id').leftJoin('users', 'users.id', '=', 'flies.user_id').select('flies.*', 'tag_list_query.tag_list', get_fly_favorite, 'username')
+        const results = await Fly.query()
+                .select(
+                    'flies.*',
+                    raw('CASE WHEN EXISTS (SELECT fly_id FROM favorites WHERE user_id=:user_id and fly_id=flies.id) THEN TRUE ELSE FALSE END AS is_favorite', { user_id: req.user.id }),
+                    Fly.relatedQuery('tags')
+                        .select(raw("string_agg(tags.title, ',' order by tags.title)"))
+                        .as('tag_list'))
+
+        // const get_fly_favorite = knex.raw('CASE WHEN EXISTS (SELECT fly_id FROM favorites WHERE user_id=:user_id and fly_id=flies.id) THEN TRUE ELSE FALSE END AS is_favorite', { user_id: req.user.id })
+        // const results = await knex('flies').leftJoin(agg_fly_tags_query, 'flies.id', '=', 'tag_list_query.fly_id').leftJoin('users', 'users.id', '=', 'flies.user_id').select('flies.*', 'tag_list_query.tag_list', get_fly_favorite, 'username')
         res.status(200).send(results)
     }
     else {
