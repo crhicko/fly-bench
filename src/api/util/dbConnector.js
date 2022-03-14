@@ -1,3 +1,5 @@
+const {Model} = require('objection')
+
 const knex = require('knex')({
     client: 'pg',
     connection: process.env.DATABASE_URL,
@@ -6,5 +8,7 @@ const knex = require('knex')({
       min: 0
     }
   })
+
+Model.knex(knex)
 
 module.exports = knex
