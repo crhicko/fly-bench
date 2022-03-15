@@ -1,4 +1,4 @@
-const knex = require('./dbConnector')
+const knex = require('../util/dbConnector')
 
 async function checkFlyOwner(req, res, next) {
     const results = await knex('flies').where('id', req.params.id)
